@@ -1,4 +1,4 @@
-#Just a test
+;Just a test
 NOP
 NOP
 NOP
