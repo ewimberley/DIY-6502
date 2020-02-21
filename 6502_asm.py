@@ -5,7 +5,7 @@ from lark import Lark, Transformer, v_args
 grammar = """
     start: line*
 
-    line: (setlabel | command) COMMENT? NEWLINE
+    line: (setlabel | command)? COMMENT? NEWLINE
     
     command: WORD (value | address | zeropage | label)?
     
@@ -24,10 +24,10 @@ grammar = """
     %import common.HEXDIGIT
     %import common.WORD   
     %import common.CNAME
-    %import common.WS
+    %import common.WS_INLINE
     %import common.NEWLINE
     %import common.ESCAPED_STRING
-    %ignore WS 
+    %ignore WS_INLINE 
 """
 
 parser = Lark(grammar)
@@ -57,7 +57,8 @@ def short_to_signed_hex_byte(short):
         byte = hex(short + 256)
     else:
         raise OverflowException()
-    return byte[2:]
+    hexcode = byte[2:]
+    return "0" + hexcode if len(hexcode) == 1 else hexcode
 
 def codegen(tree, instruction_set):
     #rom = bytearray([0x00] * 0xFFFF)
@@ -67,7 +68,7 @@ def codegen(tree, instruction_set):
     instruction_address = 0x600
     for line in tree.children:
         command = line.children[0]
-        print(command)
+        #print(command)
         if line.children[0].data == "setlabel":
             label = str(command.children[0].children[0])
             labels[label] = instruction_address
@@ -91,13 +92,13 @@ def codegen(tree, instruction_set):
                     elif child.data == "zeropage":
                         parameter = parse_hex_num(child)
                         param_type = "zerop"
-            print(opcode + "\t" + str(parameter))
+            #print(opcode + "\t" + str(parameter))
             possible_ops = instruction_set[opcode]
             op_definition = None
             for op in possible_ops:
                 if op['ptype'] == param_type:
                     op_definition = op
-            print(opcode + "\t" + str(op_definition))
+            #print(opcode + "\t" + str(op_definition))
             rom[instruction_address] = op_definition['hex']
             instruction_address += 1
             if param_type != "none":
@@ -114,9 +115,9 @@ def codegen(tree, instruction_set):
         offset = labels[label] - address - 1
         byte = short_to_signed_hex_byte(offset)
         rom[address] = byte
-    print(rom[0x0600:0x0700])
+    #print(rom[0x0600:0x0700])
     switch_endian(rom)
-    print(rom[0x0600:0x0700])
+    #print(rom[0x0600:0x0700])
     return bytes.fromhex("".join(rom))
 
 def switch_endian(rom):
@@ -140,7 +141,7 @@ def main(argv):
             line = file.readline()
     tree = parse_file(argv[0])
     rom = codegen(tree, instruction_set)
-    print(rom[0x0600:0x0700])
+    #print(rom[0x0600:0x0700])
     with open("rom.bin", "wb") as file:
         file.write(rom)
 
