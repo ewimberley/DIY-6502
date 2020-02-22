@@ -1,9 +1,11 @@
 #define READ_WRITE 34
-#define CLOCK 33
-#define RESET 24
+#define CLOCK 8
+#define RESET 33
+#define IRQB 24
+#define NMI 7
 #define NOP 0xEA
 #define BOOT_ADDR 0x0700
-#define DELAY 100
+#define DELAY 200
 #define DEBUG 1
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
@@ -26,6 +28,10 @@ void setup() {
   pinMode(READ_WRITE, INPUT);
   pinMode(CLOCK, OUTPUT);
   pinMode(RESET, OUTPUT);
+  pinMode(NMI, OUTPUT);
+  pinMode(IRQB, OUTPUT);
+  digitalWrite(NMI, HIGH);
+  digitalWrite(IRQB, HIGH);
   Serial.begin(57600);
   digitalWrite(RESET, HIGH);
 }
