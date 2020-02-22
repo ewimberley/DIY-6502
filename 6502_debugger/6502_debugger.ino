@@ -1,16 +1,48 @@
 #define READ_WRITE 34
-#define CLOCK 8
+#define CLOCK_OUT 9
+#define CLOCK_IN 8
 #define RESET 33
 #define IRQB 24
 #define NMI 7
 #define NOP 0xEA
 #define BOOT_ADDR 0x0700
-#define DELAY 200
-#define DEBUG 1
+#define FREQ 5
+#define DEBUG_PIN 10
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
 const char BOOT_LOADER[] = {NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP};
 char MEM[65535];
+int DEBUG = 0;
+
+void clock_rising(){
+  char output[15];
+  unsigned int address = 0;
+  unsigned int data = 0;
+  int readPin = digitalRead(READ_WRITE);
+  for(int i = 0; i < 16; i+= 1){
+    int bit = digitalRead(ADDR[i]) ? 1: 0;
+    address = (address << 1) + bit;
+    if(DEBUG) { Serial.print(bit); }
+  }
+  if(DEBUG) { Serial.print("   "); }
+  if(readPin){
+    setDataMode(OUTPUT);
+    data = MEM[address];
+    setData(data);
+  } else{
+    setDataMode(INPUT);
+    for(int i = 0; i < 8; i+= 1){
+      int bit = digitalRead(DATA[i]) ? 1: 0;
+      data = (data << 1) + bit;
+      if(DEBUG) { Serial.print(bit); }
+    }
+    MEM[address] = data;
+  }
+  if(DEBUG) {
+    sprintf(output, "   %04x  %c  %02x", address, readPin ? 'R' : 'W', data);
+    Serial.println(output);
+  }
+}
 
 void setup() {
   for(int i = 0; i < 0xFFFF; i+=1){
@@ -25,15 +57,26 @@ void setup() {
     pinMode(ADDR[i], INPUT);
   }
   setDataMode(INPUT);
+  pinMode(DEBUG_PIN, INPUT);
   pinMode(READ_WRITE, INPUT);
-  pinMode(CLOCK, OUTPUT);
+  pinMode(CLOCK_IN, INPUT);
+  pinMode(CLOCK_OUT, OUTPUT);
   pinMode(RESET, OUTPUT);
   pinMode(NMI, OUTPUT);
   pinMode(IRQB, OUTPUT);
   digitalWrite(NMI, HIGH);
   digitalWrite(IRQB, HIGH);
-  Serial.begin(57600);
+  DEBUG = digitalRead(DEBUG_PIN);
+  attachInterrupt(digitalPinToInterrupt(CLOCK_IN), clock_rising, RISING);
   digitalWrite(RESET, HIGH);
+  Serial.begin(57600);
+  delay(200);
+  Serial.println("DIWHY 6502");
+  Serial.println("Eric Wimberley");
+  char output[40];
+  sprintf(output, "Boot Address: %04x\tClock %dHz", BOOT_ADDR, FREQ);
+  Serial.println(output);
+  tone(CLOCK_OUT, FREQ);
 }
 
 void setDataMode(int mode){
@@ -46,38 +89,10 @@ void setData(int data){
   for(int i = 0; i < 8; i+= 1){
     int bit = bitRead(data, i);
     digitalWrite(DATA[i], bit);
-    Serial.print(bit);
+    if(DEBUG) { Serial.print(bit); }
   }
 }
 
 void loop() {
-  char output[15];
-  unsigned int address = 0;
-  unsigned int data = 0;
-  digitalWrite(CLOCK, HIGH);
-  int readPin = digitalRead(READ_WRITE);
-  for(int i = 0; i < 16; i+= 1){
-    int bit = digitalRead(ADDR[i]) ? 1: 0;
-    address = (address << 1) + bit;
-    Serial.print(bit);
-  }
-  Serial.print("   ");
-  if(readPin){
-    setDataMode(OUTPUT);
-    data = MEM[address];
-    setData(data);
-  } else{
-    setDataMode(INPUT);
-    for(int i = 0; i < 8; i+= 1){
-      int bit = digitalRead(DATA[i]) ? 1: 0;
-      data = (data << 1) + bit;
-      Serial.print(bit);
-    }
-    MEM[address] = data;
-  }
-  sprintf(output, "   %04x  %c  %02x", address, readPin ? 'R' : 'W', data);
-  Serial.println(output);
-  delay(DELAY);
-  digitalWrite(CLOCK, LOW);
-  delay(DELAY);
+  
 }
