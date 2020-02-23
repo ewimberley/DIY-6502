@@ -1,19 +1,32 @@
 import os
 import sys
 from lark import Lark, Transformer, v_args
+import logging
+logger = logging.getLogger("asm")
+#logging.basicConfig(level=logging.DEBUG)
 
 grammar = """
     start: line*
 
     line: (setlabel | command)? COMMENT? NEWLINE
     
-    command: WORD (value | address | zeropage | label)?
+    command: WORD (value | address | zerop | indir | label)? ("," register)?
     
     value: "#$" HEXDIGIT HEXDIGIT
     
     address: "$" HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
     
-    zeropage: "$" HEXDIGIT HEXDIGIT
+    indir: "(" (address | zerop) ("," register)? ")" 
+    
+    zerop: "$" HEXDIGIT HEXDIGIT
+    
+    register: a | x | y
+    
+    a: "A"
+    
+    x: "X" 
+    
+    y: "Y"
     
     label: CNAME
     
@@ -31,6 +44,8 @@ grammar = """
 """
 
 parser = Lark(grammar)
+
+debug = True
 
 class OverflowException(Exception):
     pass
@@ -61,64 +76,70 @@ def short_to_signed_hex_byte(short):
     return "0" + hexcode if len(hexcode) == 1 else hexcode
 
 def codegen(tree, instruction_set):
-    #rom = bytearray([0x00] * 0xFFFF)
     labels = {}
-    address_to_label = {}
+    addr_to_label = {}
     rom = ["00"] * 0xFFFF
-    instruction_address = 0x600
+    address = 0x600
     for line in tree.children:
         command = line.children[0]
-        #print(command)
+        logger.debug(command)
         if line.children[0].data == "setlabel":
             label = str(command.children[0].children[0])
-            labels[label] = instruction_address
+            labels[label] = address
         if line.children[0].data == "command":
-            parameter = None
-            opcode = None
-            param_type = "none"
-            for index, child in enumerate(command.children):
-                if index == 0:
-                    opcode = str(child)
-                elif index == 1:
-                    if child.data == "value":
-                        parameter = parse_hex_num(child)
-                        param_type = "value"
-                    elif child.data == "address":
-                        parameter = parse_hex_num(child)
-                        param_type = "address"
-                    elif child.data == "label":
-                        parameter = str(child.children[0])
-                        param_type = "label"
-                    elif child.data == "zeropage":
-                        parameter = parse_hex_num(child)
-                        param_type = "zerop"
-            #print(opcode + "\t" + str(parameter))
-            possible_ops = instruction_set[opcode]
-            op_definition = None
-            for op in possible_ops:
-                if op['ptype'] == param_type:
-                    op_definition = op
-            #print(opcode + "\t" + str(op_definition))
-            rom[instruction_address] = op_definition['hex']
+            address = assemble_command(addr_to_label, command, address, instruction_set, rom)
+    compute_jmp_offsets(addr_to_label, labels, rom)
+    logger.debug(rom[0x0600:0x0700])
+    switch_endian(rom)
+    #print(rom[0x0600:0x0700])
+    return bytes.fromhex("".join(rom))
+
+def assemble_command(address_to_label, command, instruction_address, instruction_set, rom):
+    parameter = None
+    opcode = None
+    param_type = "none"
+    index_param = "none"
+    for index, child in enumerate(command.children):
+        if index == 0:
+            opcode = str(child)
+        elif index == 1:
+            param_type = child.data
+            if child.data == "value":
+                parameter = parse_hex_num(child)
+            elif child.data == "address":
+                parameter = parse_hex_num(child)
+            elif child.data == "label":
+                parameter = str(child.children[0])
+            elif child.data == "zerop":
+                parameter = parse_hex_num(child)
+            elif child.data == "indir":
+                parameter = parse_hex_num(child.children[0])
+    logger.debug(opcode + "\t" + str(parameter))
+    possible_ops = instruction_set[opcode]
+    op_definition = None
+    for op in possible_ops:
+        if op['ptype'] == param_type:
+            op_definition = op
+    logger.debug(opcode + "\t" + str(op_definition))
+    rom[instruction_address] = op_definition['hex']
+    instruction_address += 1
+    if param_type != "none":
+        if param_type == "label":
+            # rom[instruction_address] = labels[parameter]
+            address_to_label[instruction_address] = parameter
             instruction_address += 1
-            if param_type != "none":
-                if param_type == "label":
-                    #rom[instruction_address] = labels[parameter]
-                    address_to_label[instruction_address] = parameter
-                    instruction_address += 1
-                else:
-                    for num in parameter:
-                        rom[instruction_address] = num
-                        instruction_address += 1
+        else:
+            for num in parameter:
+                rom[instruction_address] = num
+                instruction_address += 1
+    return instruction_address
+
+def compute_jmp_offsets(address_to_label, labels, rom):
     for address in address_to_label:
         label = address_to_label[address]
         offset = labels[label] - address - 1
         byte = short_to_signed_hex_byte(offset)
         rom[address] = byte
-    #print(rom[0x0600:0x0700])
-    switch_endian(rom)
-    #print(rom[0x0600:0x0700])
-    return bytes.fromhex("".join(rom))
 
 def switch_endian(rom):
     i = 0

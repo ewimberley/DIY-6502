@@ -1,8 +1,10 @@
 BRK	00	none	Halt
 ADC	69	value	Add value to A register
+JMP	6C	indir	Jump to the address at the argument address.
 STA	85	zerop	Store zeropage address to A register
 STA	8D	address	Store A at address
 STX	8E	address	Store X at address
+LDY	A0	value	Load value into Y
 LDX	A2	value	Load value into X
 LDA	A9	value	Load value into A
 TAX	AA	none	Transfer A to X
