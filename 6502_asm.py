@@ -95,10 +95,9 @@ def codegen(tree, instruction_set):
     return bytes.fromhex("".join(rom))
 
 def assemble_command(address_to_label, command, instruction_address, instruction_set, rom):
-    parameter = None
     opcode = None
     param_type = "none"
-    index_param = "none"
+    parameter = None
     for index, child in enumerate(command.children):
         if index == 0:
             opcode = str(child)
@@ -114,18 +113,20 @@ def assemble_command(address_to_label, command, instruction_address, instruction
                 parameter = parse_hex_num(child)
             elif child.data == "indir":
                 parameter = parse_hex_num(child.children[0])
+                if len(child.children) > 1 and child.children[1].data == "register":
+                    param_type += "+" + child.children[1].children[0].data
     logger.debug(opcode + "\t" + str(parameter))
     possible_ops = instruction_set[opcode]
     op_definition = None
     for op in possible_ops:
-        if op['ptype'] == param_type:
+        if op["ptype"] == param_type:
             op_definition = op
     logger.debug(opcode + "\t" + str(op_definition))
     rom[instruction_address] = op_definition['hex']
     instruction_address += 1
     if param_type != "none":
         if param_type == "label":
-            # rom[instruction_address] = labels[parameter]
+            #rom[instruction_address] = labels[parameter]
             address_to_label[instruction_address] = parameter
             instruction_address += 1
         else:
