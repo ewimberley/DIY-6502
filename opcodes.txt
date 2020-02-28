@@ -1,5 +1,7 @@
 Opcode	Hex	Params	Addr Mode	Description
 BRK	00	n	s	Halt
+JSR	20	l	a	Jump to subroutine (at label)
+RTS	60	n	s	Return from subroutine
 PHA	48	n	s	Push A to stack ($0100-$01FF, starting from FF)
 JMP	4C	l	a	Jump to label
 PLA	68	n	s	Pull off stack to A
