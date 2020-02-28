@@ -1,18 +1,27 @@
-BRK	00	none	Halt
-ADC	69	value	Add value to A register
-JMP	6C	indir	Jump to the address at the argument address.
-STA	85	zerop	Store zeropage address to A register
-STY	8C	address	Store Y at address
-STA	8D	address	Store A at address
-STX	8E	address	Store X at address
-LDY	A0	value	Load value into Y
-LDA	A1	indir+x	Load value from zerop+X register address into Y
-LDX	A2	value	Load value into X
-LDA	A9	value	Load value into A
-TAX	AA	none	Transfer A to X
-CMP	C9	value	Compare value to A register
-DEX	CA	none	Decrement X
-BNE	D0	label	Jump to label if Z flag is 0
-CPX	E0	value	Compare X with value, Z=1 if equal
-INX	E8	none	Increment X
-NOP	EA	none	No operation
+Opcode	Hex	Params	Addr Mode	Description
+BRK	00	n	s	Halt
+PHA	48	n	s	Push A to stack ($0100-$01FF, starting from FF)
+JMP	4C	l	a	Jump to label
+PLA	68	n	s	Pull off stack to A
+ADC	69	v	#	Add value to A register
+JMP	6C	i	a	Jump to the address at the argument address.
+STA	85	zp	zp	Store zeropage address to A register
+TXA	8A	n	i	Transfer X to A
+STY	8C	a	a	Store Y at address
+STA	8D	a	a	Store A at address
+STX	8E	a	a	Store X at address
+STA	99	a,y	a	Store A in address+Y
+LDY	A0	v	#	Load value into Y
+LDA	A1	i+x	zp	Load value from zerop+X register address into Y
+LDX	A2	v	#	Load value into X
+LDA	A9	v	#	Load value into A
+TAX	AA	n	i	Transfer A to X
+LDA	B1	i,y	zp	Load address from zerop, add y to it, then load that addr into A
+CPY	C0	v	#	Compare Y to value
+INY	C8	n	i	Increment Y
+CMP	C9	v	#	Compare value to A register
+DEX	CA	n	i	Decrement X
+BNE	D0	l	r	Jump to label if Z flag is 0
+CPX	E0	v	#	Compare X with value, Z=1 if equal
+INX	E8	n	i	Increment X
+NOP	EA	n	i	No operation

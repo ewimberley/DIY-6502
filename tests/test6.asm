@@ -1,8 +1,8 @@
-LDY #$01
-LDA #$03
+LDX #$01
+LDA #$05
 STA $01
 LDA #$07
 STA $02
-LDX #$0a
-STX $0704
-LDA ($01),Y
+LDY #$0a
+STY $0705
+LDA ($00,X)

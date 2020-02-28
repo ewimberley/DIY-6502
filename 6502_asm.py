@@ -5,6 +5,8 @@ import logging
 logger = logging.getLogger("asm")
 #logging.basicConfig(level=logging.DEBUG)
 
+syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
+
 grammar = """
     start: line*
 
@@ -78,6 +80,7 @@ def short_to_signed_hex_byte(short):
 def codegen(tree, instruction_set):
     labels = {}
     addr_to_label = {}
+    addr_to_addr_mode = {}
     rom = ["00"] * 0xFFFF
     address = 0x600
     for line in tree.children:
@@ -87,22 +90,22 @@ def codegen(tree, instruction_set):
             label = str(command.children[0].children[0])
             labels[label] = address
         if line.children[0].data == "command":
-            address = assemble_command(addr_to_label, command, address, instruction_set, rom)
-    compute_jmp_offsets(addr_to_label, labels, rom)
+            address = assemble_command(addr_to_label, addr_to_addr_mode, command, address, instruction_set, rom)
+    compute_jmp_offsets(addr_to_label, labels, addr_to_addr_mode, rom)
     logger.debug(rom[0x0600:0x0700])
     switch_endian(rom)
     #print(rom[0x0600:0x0700])
     return bytes.fromhex("".join(rom))
 
-def assemble_command(address_to_label, command, instruction_address, instruction_set, rom):
+def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_address, instruction_set, rom):
     opcode = None
-    param_type = "none"
+    param_type = syntax_tree_to_type["none"]
     parameter = None
     for index, child in enumerate(command.children):
         if index == 0:
             opcode = str(child)
         elif index == 1:
-            param_type = child.data
+            param_type = syntax_tree_to_type[child.data]
             if child.data == "value":
                 parameter = parse_hex_num(child)
             elif child.data == "address":
@@ -115,6 +118,9 @@ def assemble_command(address_to_label, command, instruction_address, instruction
                 parameter = parse_hex_num(child.children[0])
                 if len(child.children) > 1 and child.children[1].data == "register":
                     param_type += "+" + child.children[1].children[0].data
+        elif index == 2:
+            if child.data == "register":
+                param_type += "," + child.children[0].data
     logger.debug(opcode + "\t" + str(parameter))
     possible_ops = instruction_set[opcode]
     op_definition = None
@@ -124,10 +130,11 @@ def assemble_command(address_to_label, command, instruction_address, instruction
     logger.debug(opcode + "\t" + str(op_definition))
     rom[instruction_address] = op_definition['hex']
     instruction_address += 1
-    if param_type != "none":
-        if param_type == "label":
+    if param_type != syntax_tree_to_type["none"]:
+        if param_type == syntax_tree_to_type["label"]:
             #rom[instruction_address] = labels[parameter]
             address_to_label[instruction_address] = parameter
+            addr_to_addr_mode[instruction_address] = op_definition['addr_mode']
             instruction_address += 1
         else:
             for num in parameter:
@@ -135,11 +142,14 @@ def assemble_command(address_to_label, command, instruction_address, instruction
                 instruction_address += 1
     return instruction_address
 
-def compute_jmp_offsets(address_to_label, labels, rom):
+def compute_jmp_offsets(address_to_label, labels, addr_to_label_mode, rom):
     for address in address_to_label:
         label = address_to_label[address]
-        offset = labels[label] - address - 1
-        byte = short_to_signed_hex_byte(offset)
+        if addr_to_label_mode[address] == "r":
+            offset = labels[label] - address - 1
+            byte = short_to_signed_hex_byte(offset)
+        else:
+            byte = short_to_signed_hex_byte(labels[label])
         rom[address] = byte
 
 def switch_endian(rom):
@@ -154,12 +164,13 @@ def main(argv):
     instruction_set = {}
     with open("opcodes.txt", "r") as file:
         line = file.readline()
+        line = file.readline()
         while line:
             parts = line.rstrip().split("\t")
             opcode = parts[0]
             if opcode not in instruction_set:
                 instruction_set[opcode] = []
-            instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2]})
+            instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2], 'addr_mode':parts[3]})
             line = file.readline()
     tree = parse_file(argv[0])
     rom = codegen(tree, instruction_set)
