@@ -66,6 +66,12 @@ def parse_hex_num(tree):
             nums = [str(child)] + nums
     return nums
 
+def int_to_signed_hex(i):
+    hexcode = hex(i)[2:]
+    byte_str = "0" + hexcode if len(hexcode) == 3 else hexcode
+    bytes = [byte_str[2:], byte_str[0:2]]
+    return bytes
+
 def short_to_signed_hex_byte(short):
     byte = hex(0)
     if short > 0 and short < 128:
@@ -134,8 +140,12 @@ def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_a
         if param_type == syntax_tree_to_type["label"]:
             #rom[instruction_address] = labels[parameter]
             address_to_label[instruction_address] = parameter
-            addr_to_addr_mode[instruction_address] = op_definition['addr_mode']
-            instruction_address += 1
+            addr_mode = op_definition['addr_mode']
+            addr_to_addr_mode[instruction_address] = addr_mode
+            if addr_mode == 'a':
+                instruction_address += 2
+            else:
+                instruction_address += 1
         else:
             for num in parameter:
                 rom[instruction_address] = num
@@ -147,10 +157,12 @@ def compute_jmp_offsets(address_to_label, labels, addr_to_label_mode, rom):
         label = address_to_label[address]
         if addr_to_label_mode[address] == "r":
             offset = labels[label] - address - 1
-            byte = short_to_signed_hex_byte(offset)
+            bytes = [short_to_signed_hex_byte(offset)]
         else:
-            byte = short_to_signed_hex_byte(labels[label])
-        rom[address] = byte
+            bytes = int_to_signed_hex(labels[label])
+        for byte in bytes:
+            rom[address] = byte
+            address += 1
 
 def switch_endian(rom):
     i = 0
