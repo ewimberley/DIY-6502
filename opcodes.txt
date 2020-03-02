@@ -1,8 +1,14 @@
 Opcode	Hex	Params	Addr Mode	Description
 BRK	00	n	s	Halt
+ORA	01	i+x	zp	OR value from zerop+X address
+ORA	11	i,y	zp	Load zp address, add y to that, then OR value at that addr
+ORA	09	v	#	OR value with A register
 JSR	20	l	a	Jump to subroutine (at label)
+AND	29	v	#	AND value with A register
 RTS	60	n	s	Return from subroutine
+RTI	40	n	s	Return from interrupt
 PHA	48	n	s	Push A to stack ($0100-$01FF, starting from FF)
+EOR	49	v	#	XOR value with A register
 JMP	4C	l	a	Jump to label
 PLA	68	n	s	Pull off stack to A
 ADC	69	v	#	Add value to A register
@@ -16,6 +22,7 @@ STA	99	a,y	a	Store A in address+Y
 LDY	A0	v	#	Load value into Y
 LDA	A1	i+x	zp	Load value from zerop+X register address into Y
 LDX	A2	v	#	Load value into X
+LDA	A5	zp	zp	Load value at zerop into A
 LDA	A9	v	#	Load value into A
 TAX	AA	n	i	Transfer A to X
 LDA	B1	i,y	zp	Load address from zerop, add y to it, then load that addr into A
@@ -26,4 +33,5 @@ DEX	CA	n	i	Decrement X
 BNE	D0	l	r	Jump to label if Z flag is 0
 CPX	E0	v	#	Compare X with value, Z=1 if equal
 INX	E8	n	i	Increment X
+SBC	E9	v	#	Subtract value from A
 NOP	EA	n	i	No operation

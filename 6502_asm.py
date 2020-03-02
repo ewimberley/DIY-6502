@@ -7,34 +7,35 @@ logger = logging.getLogger("asm")
 
 syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
 
+RESET_LSB = 0xFFFC
+RESET_MSB = 0xFFFD
+IRQBRK_LSB = 0xFFFE
+IRQBRK_MSB = 0xFFFF
+NMI_LSB = 0xFFFA
+NMI_SB = 0xFFFB
+
 grammar = """
     start: line*
 
     line: (setlabel | command)? COMMENT? NEWLINE
     
     command: WORD (value | address | zerop | indir | label)? ("," register)?
+    setlabel: label ":"
     
     value: "#$" HEXDIGIT HEXDIGIT
-    
     address: "$" HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
-    
     indir: "(" (address | zerop) ("," register)? ")" 
-    
     zerop: "$" HEXDIGIT HEXDIGIT
     
     register: a | x | y
-    
     a: "A"
-    
     x: "X" 
-    
     y: "Y"
     
     label: CNAME
     
-    setlabel: label ":"
-    
     COMMENT: ";" /.*/ 
+    
     %import common.INT 
     %import common.HEXDIGIT
     %import common.WORD   
@@ -52,9 +53,27 @@ debug = True
 class OverflowException(Exception):
     pass
 
+def preprocess(code):
+    definitions = {}
+    processed_code = ""
+    for line in code.split("\n"):
+        if line.rstrip().lstrip().startswith("define"):
+            parts = line.split()
+            definitions[parts[1]] = parts[2]
+        else:
+            processed_line = line
+            for definition in definitions:
+                if definition in processed_line:
+                    processed_line = processed_line.replace(definition, definitions[definition])
+            processed_code += processed_line + "\n"
+    processed_code = "".join([s for s in processed_code.splitlines(True) if s.strip("\r\n")])
+    return processed_code.lstrip()
+
+
 def parse_file(file_name):
     with open(file_name, "r") as file:
         data = file.read()
+        data = preprocess(data)
         return parser.parse(data)
 
 def parse_hex_num(tree):
@@ -92,10 +111,14 @@ def codegen(tree, instruction_set):
     for line in tree.children:
         command = line.children[0]
         logger.debug(command)
-        if line.children[0].data == "setlabel":
+        if command.data == "setlabel":
             label = str(command.children[0].children[0])
             labels[label] = address
-        if line.children[0].data == "command":
+            if label == 'irq':
+                pass
+            elif label == 'nmi':
+                pass
+        elif command.data == "command":
             address = assemble_command(addr_to_label, addr_to_addr_mode, command, address, instruction_set, rom)
     compute_jmp_offsets(addr_to_label, labels, addr_to_addr_mode, rom)
     logger.debug(rom[0x0600:0x0700])
@@ -111,15 +134,12 @@ def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_a
         if index == 0:
             opcode = str(child)
         elif index == 1:
-            param_type = syntax_tree_to_type[child.data]
-            if child.data == "value":
-                parameter = parse_hex_num(child)
-            elif child.data == "address":
+            cdata = child.data
+            param_type = syntax_tree_to_type[cdata]
+            if cdata == "value" or cdata == "address" or cdata == "zerop":
                 parameter = parse_hex_num(child)
             elif child.data == "label":
                 parameter = str(child.children[0])
-            elif child.data == "zerop":
-                parameter = parse_hex_num(child)
             elif child.data == "indir":
                 parameter = parse_hex_num(child.children[0])
                 if len(child.children) > 1 and child.children[1].data == "register":
@@ -138,7 +158,6 @@ def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_a
     instruction_address += 1
     if param_type != syntax_tree_to_type["none"]:
         if param_type == syntax_tree_to_type["label"]:
-            #rom[instruction_address] = labels[parameter]
             address_to_label[instruction_address] = parameter
             addr_mode = op_definition['addr_mode']
             addr_to_addr_mode[instruction_address] = addr_mode
