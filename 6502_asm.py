@@ -17,13 +17,15 @@ NMI_SB = 0xFFFB
 grammar = """
     start: line*
 
-    line: (setlabel | command)? COMMENT? NEWLINE
+    line: (setlabel | command | pragma)? COMMENT? NEWLINE
     
     command: WORD (value | address | zerop | indir | label)? ("," register)?
     setlabel: label ":"
+    pragma: "." (org | byteprag | wordprag)
     
     value: "#$" HEXDIGIT HEXDIGIT
     address: "$" HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
+    word: "#$" HEXDIGIT HEXDIGIT HEXDIGIT HEXDIGIT
     indir: "(" (address | zerop) ("," register)? ")" 
     zerop: "$" HEXDIGIT HEXDIGIT
     
@@ -31,6 +33,10 @@ grammar = """
     a: "A"
     x: "X" 
     y: "Y"
+    
+    org: "org" address
+    byteprag: "byte" value
+    wordprag: "word" word
     
     label: CNAME
     
@@ -61,12 +67,13 @@ def preprocess(code):
             parts = line.split()
             definitions[parts[1]] = parts[2]
         else:
-            processed_line = line
+            processed_line = [part.lstrip().rstrip() for part in line.split()]
             for definition in definitions:
                 if definition in processed_line:
                     processed_line = processed_line.replace(definition, definitions[definition])
-            processed_code += processed_line + "\n"
+            processed_code += " ".join(processed_line) + "\n"
     processed_code = "".join([s for s in processed_code.splitlines(True) if s.strip("\r\n")])
+    logger.debug(processed_code)
     return processed_code.lstrip()
 
 
@@ -93,7 +100,7 @@ def int_to_signed_hex(i):
 
 def short_to_signed_hex_byte(short):
     byte = hex(0)
-    if short > 0 and short < 128:
+    if short >= 0 and short < 128:
          byte = hex(short)
     elif short < 0 and short >= -128:
         byte = hex(short + 256)
@@ -106,18 +113,24 @@ def codegen(tree, instruction_set):
     labels = {}
     addr_to_label = {}
     addr_to_addr_mode = {}
-    rom = ["00"] * 0xFFFF
-    address = 0x600
+    rom = ["00"] * (0xFFFF + 1)
+    address = 0x0600 #default start address
     for line in tree.children:
         command = line.children[0]
         logger.debug(command)
-        if command.data == "setlabel":
+        if not hasattr(command, 'data'):
+            pass #this is a comment
+        elif command.data == "pragma":
+            pragma = command.children[0]
+            if pragma.data == "org":
+                address = int("0x" + "".join(parse_hex_num(pragma.children[0])[::-1]),16)
+            elif pragma.data == "byteprag":
+                num = int("0x" + parse_hex_num(pragma.children[0])[0], 16)
+                hex = short_to_signed_hex_byte(num)
+                rom[address] = hex
+        elif command.data == "setlabel":
             label = str(command.children[0].children[0])
             labels[label] = address
-            if label == 'irq':
-                pass
-            elif label == 'nmi':
-                pass
         elif command.data == "command":
             address = assemble_command(addr_to_label, addr_to_addr_mode, command, address, instruction_set, rom)
     compute_jmp_offsets(addr_to_label, labels, addr_to_addr_mode, rom)

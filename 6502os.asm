@@ -26,13 +26,29 @@ define X #$33
 define Y #$34
 define Z #$35
 
-define CONSOLE_C $0200
-define CONSOLE_I $0201
-define CONSOLE_O $0202
+;RESET interrupt
+.org $fffc ;lsb
+.byte #$00
+.org $fffd ;msb
+.byte #$07
+
+;IRQ interrupt
+.org $fffe ;lsb
+.byte #$00
+.org $ffff ;msb
+.byte #$06
+
+;NMI interrupt
+.org $fffa ;lsb
+.byte #$50
+.org $fffb ;msb
+.byte #$06
 
 ;start
+.org $0700
 NOP
 
+.org $0600
 irq:
 PHA
 PHP
@@ -40,12 +56,17 @@ PLP
 PLA
 RTI
 
+.org $0650
 nmi:
 PHA
 PHP
 PLP
 PLA
 RTI
+
+define CONSOLE_C $0200
+define CONSOLE_I $0201
+define CONSOLE_O $0202
 
 read_console:
 NOP

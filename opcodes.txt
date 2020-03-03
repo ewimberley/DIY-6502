@@ -1,9 +1,11 @@
 Opcode	Hex	Params	Addr Mode	Description
 BRK	00	n	s	Halt
 ORA	01	i+x	zp	OR value from zerop+X address
+PHP	08	n	s	Push status to the stack
 ORA	11	i,y	zp	Load zp address, add y to that, then OR value at that addr
 ORA	09	v	#	OR value with A register
 JSR	20	l	a	Jump to subroutine (at label)
+PLP	28	n	s	Pull status from stack
 AND	29	v	#	AND value with A register
 RTS	60	n	s	Return from subroutine
 RTI	40	n	s	Return from interrupt
