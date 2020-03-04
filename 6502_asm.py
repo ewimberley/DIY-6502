@@ -7,13 +7,6 @@ logger = logging.getLogger("asm")
 
 syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
 
-RESET_LSB = 0xFFFC
-RESET_MSB = 0xFFFD
-IRQBRK_LSB = 0xFFFE
-IRQBRK_MSB = 0xFFFF
-NMI_LSB = 0xFFFA
-NMI_SB = 0xFFFB
-
 grammar = """
     start: line*
 
@@ -69,8 +62,9 @@ def preprocess(code):
         else:
             processed_line = [part.lstrip().rstrip() for part in line.split()]
             for definition in definitions:
-                if definition in processed_line:
-                    processed_line = processed_line.replace(definition, definitions[definition])
+                for i, part in enumerate(processed_line):
+                    if definition == part:
+                        processed_line[i] = definitions[definition]
             processed_code += " ".join(processed_line) + "\n"
     processed_code = "".join([s for s in processed_code.splitlines(True) if s.strip("\r\n")])
     logger.debug(processed_code)
@@ -210,11 +204,12 @@ def main(argv):
         line = file.readline()
         line = file.readline()
         while line:
-            parts = line.rstrip().split("\t")
-            opcode = parts[0]
-            if opcode not in instruction_set:
-                instruction_set[opcode] = []
-            instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2], 'addr_mode':parts[3]})
+            if len(line) > 1 and (not line.startswith(";")):
+                parts = line.rstrip().split("\t")
+                opcode = parts[0]
+                if opcode not in instruction_set:
+                    instruction_set[opcode] = []
+                instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2], 'addr_mode':parts[3]})
             line = file.readline()
     tree = parse_file(argv[0])
     rom = codegen(tree, instruction_set)

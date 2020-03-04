@@ -44,10 +44,6 @@ define Z #$35
 .org $fffb ;msb
 .byte #$06
 
-;start
-.org $0700
-NOP
-
 .org $0600
 irq:
 PHA
@@ -63,6 +59,10 @@ PHP
 PLP
 PLA
 RTI
+
+;start
+.org $0700
+NOP
 
 define CONSOLE_C $0200
 define CONSOLE_I $0201
