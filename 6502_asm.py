@@ -29,7 +29,7 @@ grammar = """
     y: "Y"
     
     org: "org" address
-    byteprag: "byte" value
+    byteprag: "byte" (value)+
     wordprag: "word" word
     
     label: CNAME
@@ -70,13 +70,6 @@ def preprocess(code):
     processed_code = "".join([s for s in processed_code.splitlines(True) if s.strip("\r\n")])
     logger.debug(processed_code)
     return processed_code.lstrip()
-
-
-def parse_file(file_name):
-    with open(file_name, "r") as file:
-        data = file.read()
-        data = preprocess(data)
-        return parser.parse(data)
 
 def parse_hex_num(tree):
     nums = []
@@ -119,9 +112,10 @@ def codegen(rom, tree, instruction_set):
             if pragma.data == "org":
                 address = int("0x" + "".join(parse_hex_num(pragma.children[0])[::-1]),16)
             elif pragma.data == "byteprag":
-                num = int("0x" + parse_hex_num(pragma.children[0])[0], 16)
-                hex = short_to_signed_hex_byte(num)
-                rom[address] = hex
+                hex_strs = [parse_hex_num(child)[0] for child in pragma.children]
+                for hex_str in hex_strs:
+                    rom[address] = hex_str
+                    address += 1
         elif command.data == "setlabel":
             label = str(command.children[0].children[0])
             labels[label] = address
@@ -208,10 +202,14 @@ def main(argv):
                     instruction_set[opcode] = []
                 instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2], 'addr_mode':parts[3]})
             line = file.readline()
+    asm = ""
     for file in argv:
-        tree = parse_file(file)
-        codegen(rom, tree, instruction_set)
-    switch_endian(rom)
+        with open(file, "r") as file:
+            asm += file.read()
+    asm = preprocess(asm)
+    tree = parser.parse(asm)
+    codegen(rom, tree, instruction_set)
+    #switch_endian(rom)
     rom = bytes.fromhex("".join(rom))
     with open("rom.bin", "wb") as file:
         file.write(rom)

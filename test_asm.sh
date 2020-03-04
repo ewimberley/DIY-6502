@@ -1,6 +1,9 @@
 #!/bin/bash
 for filename in tests/*.asm; do
+  echo ""
+  echo "************************************************************"
   echo "Testing $filename"
+  echo "************************************************************"
   python3 6502_asm.py $filename
   base=$(basename $filename | cut -d"." -f1)
   answer="tests/$base.bin"
@@ -9,7 +12,7 @@ for filename in tests/*.asm; do
   then
     echo "Test failed!"
     hexdump rom.bin
-    echo "************************************************************"
+    echo "------------------------------------------------------------"
     hexdump $answer
   else
     echo "Pass"
