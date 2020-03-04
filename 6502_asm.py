@@ -7,6 +7,7 @@ logger = logging.getLogger("asm")
 
 syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
 
+#TODO: handle negative numbers?
 grammar = """
     start: line*
 
@@ -103,11 +104,10 @@ def short_to_signed_hex_byte(short):
     hexcode = byte[2:]
     return "0" + hexcode if len(hexcode) == 1 else hexcode
 
-def codegen(tree, instruction_set):
+def codegen(rom, tree, instruction_set):
     labels = {}
     addr_to_label = {}
     addr_to_addr_mode = {}
-    rom = ["00"] * (0xFFFF + 1)
     address = 0x0600 #default start address
     for line in tree.children:
         command = line.children[0]
@@ -128,10 +128,6 @@ def codegen(tree, instruction_set):
         elif command.data == "command":
             address = assemble_command(addr_to_label, addr_to_addr_mode, command, address, instruction_set, rom)
     compute_jmp_offsets(addr_to_label, labels, addr_to_addr_mode, rom)
-    logger.debug(rom[0x0600:0x0700])
-    switch_endian(rom)
-    #print(rom[0x0600:0x0700])
-    return bytes.fromhex("".join(rom))
 
 def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_address, instruction_set, rom):
     opcode = None
@@ -199,6 +195,7 @@ def switch_endian(rom):
         i += 2
 
 def main(argv):
+    rom = ["00"] * (0xFFFF + 1)
     instruction_set = {}
     with open("opcodes.txt", "r") as file:
         line = file.readline()
@@ -211,9 +208,11 @@ def main(argv):
                     instruction_set[opcode] = []
                 instruction_set[opcode].append({'hex':parts[1], 'ptype':parts[2], 'addr_mode':parts[3]})
             line = file.readline()
-    tree = parse_file(argv[0])
-    rom = codegen(tree, instruction_set)
-    #print(rom[0x0600:0x0700])
+    for file in argv:
+        tree = parse_file(file)
+        codegen(rom, tree, instruction_set)
+    switch_endian(rom)
+    rom = bytes.fromhex("".join(rom))
     with open("rom.bin", "wb") as file:
         file.write(rom)
 

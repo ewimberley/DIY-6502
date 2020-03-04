@@ -7,25 +7,62 @@ ADC	69	v	#	Add value to A register
 ADC	6D	a	a	Add value at address
 ADC	71	i,y	zp	Load zp address, add y, then add value at result addr
 
+;SBC
+SBC	E5	zp	zp	Subtract value at zp
+SBC	E9	v	#	Subtract value from A
+SBC	ED	a	a	Subtract valule at address
+SBC	F1	i,y	zp	Load zp address, add y, then subtract value at result addr
+
 ;AND
 AND	21	i+x	zp	AND value from zerop+X addr
 AND	25	zp	zp	AND value at zp addr
 AND	29	v	#	AND value with A register
 AND	2D	a	a	AND value at addr
 AND	31	i,y	zp	Load zp address, add y, then add value at result addr
+
 ;ORA
 ORA	01	i+x	zp	OR value from zerop+X address
+ORA	05	zp	zp	OR value from zp
 ORA	09	v	#	OR value with A register
-ORA	11	i,y	zp	Load zp address, add y to that, then OR value at that addr
+ORA	0D	a	a	OR value from address
+ORA	11	i,y	zp	Load zp address, add y to that, then OR value at result addr
+
 ;EOR
+ERO	45	zp	zp	XOR with value at zp
 EOR	49	v	#	XOR value with A register
-;ROL
-;ROR
-;ASL
+EOR	4D	a	a	XOR with value at address
+EOR	55	zp,x	zp	XOR with value at zp+x
+EOR	59	a,y	a	XOR with value at addr+y
+EOR	5D	a,x	a	XOR with value at addr+x
+EOR	51	i,y	zp	Load value at zp, add y, then XOR with value at that address
+
+;Rotate (ROL/ROR)
+ROL	26	zp	zp	Rotate left at zp
+ROL	2A	n	n	Rotate accumulator left
+ROL	2E	a	a	Rotate address left
+ROR	66	zp	zp	Rotate right at zp
+ROR	6A	n	n	Rotate accumulator right
+ROR	6E	a	a	Rotate address right
+
+;Shift
 ASL	0A	n	#	Shift A register left
-;LSR
 LSR	4A	n	n	Shift A register right
-;BIT
+LSR	46	zp	zp	Shift value at zp right
+LSR	4E	a	a	Shift value at address right
+
+;INC
+INC	E6	zp	zp	Increment value at zp
+INC	EE	a	a	Increment value at address
+INC	F6	zp,x	zp	Increment value at zp+x
+INC	FE	a,x	a	Increment valuat at address+x
+
+;DEC
+DEC	C6	zp	zp	Increment value at zp
+DEC	CE	a	a	Increment value at address
+DEC	D6	zp,x	zp	Increment value at zp+x
+DEC	DE	a,x	a	Increment valuat at address+x
+
+;BIT (TODO)
 BIT	24	zp	zp	????
 
 ;Branch
@@ -39,11 +76,19 @@ BNE	D0	l	r	Jump to label if Z flag is 0
 BEQ	F0	l	r	Jump to label if Z flag is 1
 
 ;CMP
+CMP	C5	zp	zp	Compare with value at zp
 CMP	C9	v	#	Compare value to A register
+CMP	CD	a	a	Compare with value at addr
+
 ;CPX
 CPX	E0	v	#	Compare X with value, Z=1 if equal
+CPX	E4	zp	zp	Compare X with value at zp
+CPX	EC	a	a	Compare X with value at addr
+
 ;CPY
 CPY	C0	v	#	Compare Y to value
+CPY	C4	zp	zp	Compare Y with value at zp
+CPY	CC	a	a	Compare Y with value at addr
 
 ;Flags
 CLC	18	n	#	Clear carry
@@ -54,26 +99,34 @@ CLV	B8	n	#	Clear overflow
 CLD	D8	n	#	Clear decimal
 SED	F8	n	#	Set decimal
 
-;INC
-;DEC
-
 ;JMP
 JMP	4C	l	a	Jump to label
 JMP	6C	i	a	Jump to the address at the argument address.
-;JSR
 JSR	20	l	a	Jump to subroutine (at label)
 
 ;LDA
-LDA	A1	i+x	zp	Load value from zerop+X register address into Y
+LDA	A1	i+x	zp	Load value from zerop+X address into Y
 LDA	A5	zp	zp	Load value at zerop into A
 LDA	A9	v	#	Load value into A
+LDA	AD	a	a	Load value at address into A
 LDA	B1	i,y	zp	Load address from zerop, add y to it, then load that addr into A
+LDA	B5	zp,x	zp	Load value at zp+X into A 
+LDA	B9	a,y	a	Load value at address+y into A
+LDA	BD	a,x	a	Load value at address+x into A
+
 ;LDX
 LDX	A2	v	#	Load value into X
 LDX	A6	zp	zp	Load value at zerop into X
+LDX	AE	a	a	Load value at address
+LDX	B6	i,y	zp	Load value at zp, add y, then load that address
+LDX	BE	a,y	a	Load value at address+Y
+
 ;LDY
 LDY	A0	v	#	Load value into Y
 LDY	A4	zp	zp	Load value at zerop into Y
+LDY	AC	a	a	Load value at address
+LDY	B4	i,y	zp	Load value at zp, add y, then load that address
+LDY	BC	a,y	a	Load value at address+Y
 
 ;Registers
 DEY	88	n	i	Decrement Y
@@ -85,22 +138,26 @@ INY	C8	n	i	Increment Y
 DEX	CA	n	i	Decrement X
 INX	E8	n	i	Increment X
 
-;RTI
+;Returns
 RTI	40	n	s	Return from interrupt
-;RTS
 RTS	60	n	s	Return from subroutine
 
-;SBC
-SBC	E9	v	#	Subtract value from A
-
 ;STA
-STA	85	zp	zp	Store zeropage address to A register
-STA	99	a,y	a	Store A in address+Y
+STA	85	zp	zp	Store A to zp
 STA	8D	a	a	Store A at address
+STA	95	zp,x	zp	Store A to zp+x
+STA	99	a,y	a	Store A in address+Y
+STA	9D	a,x	a	Store A in address+X
+
 ;STX
+STX	86	zp	zp	Store X at zp
 STX	8E	a	a	Store X at address
+STX	96	zp,y	zp	Store X t zp+y
+
 ;STY
+STY	84	zp	zp	Store Y at zp
 STY	8C	a	a	Store Y at address
+STY	94	zp,x	zp	Store Y at zp+x
 
 ;Stack
 PHA	48	n	s	Push A to stack ($0100-$01FF, starting from FF)

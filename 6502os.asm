@@ -68,10 +68,10 @@ define CONSOLE_C $0200
 define CONSOLE_I $0201
 define CONSOLE_O $0202
 
-read_console:
+read:
 NOP
 RTS
 
-write_console:
+write:
 NOP
 RTS
