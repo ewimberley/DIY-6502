@@ -1,3 +1,5 @@
+#include <EEPROM.h>
+
 #define READ_WRITE 34
 #define CLOCK_OUT 9
 #define CLOCK_IN 8
@@ -5,12 +7,11 @@
 #define IRQB 24
 #define NMI 7
 #define NOP 0xEA
-#define BOOT_ADDR 0x0700
+#define BOOT_ADDR 0x1000
 #define FREQ 5
 #define DEBUG_PIN 10
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
-const char BOOT_LOADER[] = {NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP, NOP};
 char MEM[65535];
 int DEBUG = 0;
 
@@ -44,15 +45,21 @@ void clock_rising(){
   }
 }
 
+void init_mem(){
+  int addr = 0x1000;
+  for(int i = 0; i < 3072; i++){
+    MEM[addr] = EEPROM.read(i);
+    addr++;
+  }
+}
+
 void setup() {
   for(int i = 0; i < 0xFFFF; i+=1){
     MEM[i] = 0X0;
   }
+  init_mem();
   MEM[0xFFFC] = 0x00;
-  MEM[0xFFFD] = 0x07;
-  for(int i = 0; i < 10; i+=1){
-    MEM[BOOT_ADDR+i] = BOOT_LOADER[i];
-  }
+  MEM[0xFFFD] = 0x10;
   for(int i = 0; i < 16; i+=1){
     pinMode(ADDR[i], INPUT);
   }
