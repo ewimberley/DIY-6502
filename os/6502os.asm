@@ -1,15 +1,16 @@
 ;00XX	Zero page
 ;01XX	Stack
 ;02XX	IO
-;03xx	Devices Procedures
-;04XX	Static
-;06XX	Interrupts
-;07XX	OS Main
-;1XXX	Working memory
+;10XX	OS Main
+;11XX	Static
+;12xx	Devices Procedures
+;13XX	Interrupts
+;2XXX	Working memory
 ;FFFX	Interrupt address page
 
-.org $0700
-
+.org $1000
+LD
+JSR copy
 start:
 NOP
 JMP start ;OS loop

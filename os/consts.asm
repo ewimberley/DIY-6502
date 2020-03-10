@@ -29,10 +29,10 @@ define SP #$36
 define DOT #$37
 define DOLLAR #$38
 
-.org $0400
+.org $1100
 
 ;OS boot message
 .byte E R I C SP O S 
 
-.org $0410
+.org $1110
 .byte DOLLAR ;console sentinal

@@ -1,0 +1,53 @@
+*Pick And Place List
+*Company=
+*Author=
+*eMail=
+*
+*Project=circuit
+*Date=09:04:56
+*CreatedBy=Fritzing 0.9.3b.04.19.5c895d327c44a3114e5fcc9d8260daf0cbb52806
+*
+*
+*Coordinates in mm, always center of component
+*Origin 0/0=Lower left corner of PCB
+*Rotation in degree (0-360, math. pos.)
+*
+*No;Value;Package;X;Y;Rotation;Side;Name
+1;;;47.9612;-74.0554;0;Bottom;Via28
+2;;;30.8924;-66.7402;0;Bottom;Via21
+3;;;46.1822;-57.1178;0;Top;Teensy1
+4;;;58.3244;-47.8426;0;Bottom;Via16
+5;;;80.8796;-33.2122;0;Bottom;Via6
+6;;;46.1324;-66.7402;0;Bottom;Via7
+7;;;32.1116;-25.897;0;Bottom;Via25
+8;;;18.0908;-17.9722;0;Bottom;Via33
+9;;;24.7964;-71.617;0;Bottom;Via14
+10;;;65.03;-63.0826;0;Bottom;Via22
+11;;;71.126;-39.3082;0;Bottom;Via32
+12;;;63.2012;-71.0074;0;Bottom;Via23
+13;;;68.078;-62.473;0;Bottom;Via24
+14;;;65.03;-56.9866;0;Bottom;Via29
+15;;;27.8444;-69.1786;0;Bottom;Via17
+16;;;65.6396;-47.8426;0;Bottom;Via2
+17;;;43.694;-69.7882;0;Bottom;Via11
+18;;;72.9548;-39.9178;0;Bottom;Via34
+19;;;36.3788;-62.473;0;Bottom;Via19
+20;;;72.3452;-63.0826;0;Bottom;Via9
+21;;;68.078;-42.9658;0;Bottom;Via8
+22;;;34.55;-54.5482;0;Bottom;Via18
+23;;DIP (Dual Inline) [THT];41.1626;-25.3962;90;Bottom;IC2
+24;;;51.6188;-63.0826;0;Bottom;Via36
+25;;;79.6604;-54.5482;0;Bottom;Via3
+26;;;32.1116;-63.0826;0;Bottom;Via20
+27;;;68.078;-68.569;0;Bottom;Via27
+28;;;69.2972;-47.233;0;Bottom;Via5
+29;;;40.646;-66.7402;0;Bottom;Via15
+30;;;80.8796;-56.377;0;Bottom;Via30
+31;;;46.742;-27.1162;0;Bottom;Via10
+32;;;31.502;-17.9722;0;Bottom;Via31
+33;;;58.934;-51.5002;0;Bottom;Via12
+34;;;78.4412;-52.7194;0;Bottom;Via13
+35;;;59.5436;-32.6026;0;Bottom;Via35
+36;;;77.8316;-35.6506;0;Bottom;Via1
+37;;;63.2012;-41.137;0;Bottom;Via4
+38;;;60.7628;-62.473;0;Bottom;Via26

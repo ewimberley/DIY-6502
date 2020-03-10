@@ -58,8 +58,15 @@ void setup() {
     MEM[i] = 0X0;
   }
   init_mem();
+  //reset
   MEM[0xFFFC] = 0x00;
   MEM[0xFFFD] = 0x10;
+  //irq
+  MEM[0xFFFE] = 0x20;
+  MEM[0xFFFF] = 0x13;
+  //nmi
+  MEM[0xFFFA] = 0x50;
+  MEM[0xFFFB] = 0x13;
   for(int i = 0; i < 16; i+=1){
     pinMode(ADDR[i], INPUT);
   }

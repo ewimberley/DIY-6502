@@ -1,22 +1,4 @@
-;RESET interrupt
-.org $fffc ;lsb
-.byte #$90
-.org $fffd ;msb
-.byte #$06
-
-;IRQ interrupt
-.org $fffe ;lsb
-.byte #$20
-.org $ffff ;msb
-.byte #$06
-
-;NMI interrupt
-.org $fffa ;lsb
-.byte #$50
-.org $fffb ;msb
-.byte #$06
-
-.org $0600 
+.org $1300 
 pushall:
 PHA ;push a
 TXA 
@@ -36,17 +18,17 @@ PLA ;restore a
 RTS
 
 ;irq
-.org $0620
+.org $1320
 JSR pushall 
 JSR restoreall
 RTI
 
 ;nmi
-.org $0650
+.org $1350
 JSR pushall 
 JSR restoreall
 RTI
 
 ;reset
-.org $0690
+.org $1390
 JMP start
