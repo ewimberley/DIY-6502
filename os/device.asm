@@ -22,5 +22,6 @@ CPY POINTER
 BEQ console_print_static_done
 LDA STATIC,X
 STA CONSOLE_BUFF
+INX
 console_print_static_done:
 RTS
