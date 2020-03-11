@@ -8,15 +8,27 @@
 #define NMI 7
 #define NOP 0xEA
 #define BOOT_ADDR 0x1000
+
+#define CONSOLE_C_ADDR 0x0210
+#define CONSOLE_S_ADDR 0x0211
+#define CONSOLE_BUFF_ADDR 0x0212
+
+#define DISK_C_ADDR 0x0220
+#define DISK_S_ADDR 0x0221
+#define DISK_BUFF_ADDR 0x0222
+
 #define FREQ 5
 #define DEBUG_PIN 10
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
-char MEM[65535];
+//const char DATA[] = {32, 31, 30, 29, 28, 27, 26, 25};
+char MEM[65536];
 int DEBUG = 0;
 
 void clock_rising(){
   char output[15];
+  char console_write;
+  int console_write_status = 0;
   unsigned int address = 0;
   unsigned int data = 0;
   int readPin = digitalRead(READ_WRITE);
@@ -32,16 +44,30 @@ void clock_rising(){
     setData(data);
   } else{
     setDataMode(INPUT);
-    for(int i = 0; i < 8; i+= 1){
+    //for(int i = 0; i < 8; i+= 1){
+    for(int i = 7; i >=0; i-=1){
       int bit = digitalRead(DATA[i]) ? 1: 0;
       data = (data << 1) + bit;
       if(DEBUG) { Serial.print(bit); }
     }
-    MEM[address] = data;
+    if(address == CONSOLE_BUFF_ADDR){
+      console_write = (char)data;
+      console_write_status = 1;
+    } else if(address == DISK_BUFF_ADDR){
+      //EEPROM.write(i+0xC00, data);
+    } else {
+      MEM[address] = data;
+    }
   }
   if(DEBUG) {
     sprintf(output, "   %04x  %c  %02x", address, readPin ? 'R' : 'W', data);
     Serial.println(output);
+  }
+  if(console_write_status){
+    if(DEBUG){
+      Serial.print("Console: ");
+    }
+    Serial.println(console_write);
   }
 }
 

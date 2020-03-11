@@ -1,6 +1,6 @@
 #include <EEPROM.h>
 
-const int data_len = 64;
+const int data_len = 0xC00;
 byte value;
 
 void setup() {
