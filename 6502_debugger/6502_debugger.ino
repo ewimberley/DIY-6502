@@ -17,7 +17,8 @@
 #define DISK_S_ADDR 0x0221
 #define DISK_BUFF_ADDR 0x0222
 
-#define FREQ 5
+//#define FREQ 1000000
+#define FREQ 10
 #define DEBUG_PIN 10
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
@@ -67,7 +68,10 @@ void clock_rising(){
     if(DEBUG){
       Serial.print("Console: ");
     }
-    Serial.println(console_write);
+    Serial.print(console_write);
+    if(DEBUG){
+      Serial.println();
+    }
   }
 }
 
@@ -106,6 +110,7 @@ void setup() {
   pinMode(IRQB, OUTPUT);
   digitalWrite(NMI, HIGH);
   digitalWrite(IRQB, HIGH);
+  //DEBUG = 0;
   DEBUG = digitalRead(DEBUG_PIN);
   attachInterrupt(digitalPinToInterrupt(CLOCK_IN), clock_rising, RISING);
   digitalWrite(RESET, HIGH);
