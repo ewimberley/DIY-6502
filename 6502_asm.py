@@ -3,11 +3,12 @@ import sys
 from lark import Lark, Transformer, v_args
 import logging
 logger = logging.getLogger("asm")
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
 
-#TODO: handle negative numbers?
+#TODO handle negative numbers?
+#TODO handle decimal and binary numbers
 grammar = """
     start: line*
 
@@ -61,11 +62,14 @@ def preprocess(code):
             parts = line.split()
             definitions[parts[1]] = parts[2]
         else:
-            processed_line = [part.lstrip().rstrip() for part in line.split()]
-            for definition in definitions:
-                for i, part in enumerate(processed_line):
-                    if definition == part:
-                        processed_line[i] = definitions[definition]
+            processed_line = [part.lstrip().rstrip() for part in line.split(" ", 1)]
+            if len(processed_line) > 1:
+                for definition in definitions:
+                    if definition in processed_line[1]:
+                        processed_line[1] = processed_line[1].replace(definition, definitions[definition])
+                #for i, part in enumerate(processed_line):
+                #    if definition == part:
+                #        processed_line[i] = definitions[definition]
             processed_code += " ".join(processed_line) + "\n"
     processed_code = "".join([s for s in processed_code.splitlines(True) if s.strip("\r\n")])
     logger.debug(processed_code)
@@ -151,6 +155,9 @@ def assemble_command(address_to_label, addr_to_addr_mode, command, instruction_a
         if op["ptype"] == param_type:
             op_definition = op
     logger.debug(opcode + "\t" + str(op_definition))
+    if op_definition is None:
+        print("Invalid instruction: " + str(command))
+        exit(1)
     rom[instruction_address] = op_definition['hex']
     instruction_address += 1
     if param_type != syntax_tree_to_type["none"]:
@@ -210,9 +217,16 @@ def main(argv):
     tree = parser.parse(asm)
     codegen(rom, tree, instruction_set)
     #switch_endian(rom)
+    first, last = -1, 0
+    for i, byte in enumerate(rom):
+        if byte != '00' and first == -1:
+            first = i
+        if byte != '00':
+            last = i
+    print(rom[first:last])
     rom = bytes.fromhex("".join(rom))
     with open("rom.bin", "wb") as file:
-        file.write(rom)
+        file.write(rom[first:last])
 
 if __name__ == "__main__":
     main(sys.argv[1:])
