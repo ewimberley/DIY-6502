@@ -114,8 +114,10 @@ void setup() {
   DEBUG = digitalRead(DEBUG_PIN);
   attachInterrupt(digitalPinToInterrupt(CLOCK_IN), clock_rising, RISING);
   digitalWrite(RESET, HIGH);
-  Serial.begin(57600);
-  delay(200);
+  Serial.begin(9600);
+  while(!Serial.available()) {
+    delay(200);  
+  }
   Serial.println("DIWHY 6502");
   Serial.println("Eric Wimberley");
   char output[40];
