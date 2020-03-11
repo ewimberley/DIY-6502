@@ -1,7 +1,7 @@
 #include <EEPROM.h>
 
 const char data[] = {!};
-const int data_len = 0xC00;
+const int data_len = @;
 
 void setup() {
   Serial.begin(57600);

@@ -23,5 +23,6 @@ BEQ console_print_static_done
 LDA STATIC,X
 STA CONSOLE_BUFF
 INX
+JMP console_print_static
 console_print_static_done:
 RTS
