@@ -6,7 +6,7 @@ define ^MAIN $1000	;OS Main
 define STATIC $1100	;Static
 define ^DEV $1200	;Devices Procedures
 define ^INT $1300	;Interrupts
-define ^WMEM $2000	;Working memory
+define WMEM $2000	;Working memory
 define SPECIAL $FFF0	;Interrupt address page
 
 ;char definitions

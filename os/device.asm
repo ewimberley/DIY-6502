@@ -1,28 +1,57 @@
-define BUFFER_SIZE $20
-define BUFFER $20
+define ZP_BUFFER $7F
+define ZP_BUFFER_LEN $80 
 
-define CONSOLE_C $0210 ;control
-define CONSOLE_S $0211 ;status 0=ready, 1=busy
+define CP_TO_ZP_POINTER $00
+define CONSOLE_PRINT_POINTER $01
+define CONSOLE_READ_POINTER $02
+
+.org $1200
+
+;x = from
+;y = to 
+cp_static_to_zp:
+STX CP_TO_ZP_POINTER 
+CPY CP_TO_ZP_POINTER 
+BEQ cp_static_to_zp_done 
+LDA STATIC,X
+STA ZP_BUFFER,X 
+INX
+JMP cp_static_to_zp 
+cp_static_to_zp_done:
+RTS
+
+define CONSOLE_LEN $0210
+define CONSOLE_S $0211 ;status 0=empty, 1=buffered 
 define CONSOLE_BUFF $0212
+
+;x = from
+;y = to 
+console_print:
+STX CONSOLE_PRINT_POINTER
+CPY CONSOLE_PRINT_POINTER
+BEQ console_print_done
+LDA ZP_BUFFER,X
+STA CONSOLE_BUFF
+INX
+JMP console_print
+console_print_done:
+RTS
+
+;x = to
+;y = max_len
+console_read:
+CPY #$00 
+BEQ console_read
+LDA CONSOLE_BUFF
+STA ZP_BUFFER,X
+INX
+DEY
+JMP console_read
+console_read_working_done:
+RTS
 
 define DISK_C $0220 ;control
 define DISK_S $0221 ;status 0=ready, 1=busy
 define DISK_BUFF $0222
 
-define POINTER $00
 
-.org $1200
-
-;TODO not reentrant safe
-;x = from
-;y = to 
-console_print_static:
-STX POINTER
-CPY POINTER
-BEQ console_print_static_done
-LDA STATIC,X
-STA CONSOLE_BUFF
-INX
-JMP console_print_static
-console_print_static_done:
-RTS

@@ -3,7 +3,7 @@ import sys
 from lark import Lark, Transformer, v_args
 import logging
 logger = logging.getLogger("asm")
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 syntax_tree_to_type = {'none': 'n', 'label': 'l', 'value': 'v', 'indir': 'i', 'zerop': 'zp', 'address': 'a'}
 
