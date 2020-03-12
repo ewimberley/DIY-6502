@@ -22,7 +22,8 @@ RTS
 
 define CONSOLE_LEN $0210
 define CONSOLE_S $0211 ;status 0=empty, 1=buffered 
-define CONSOLE_BUFF $0212
+define CONSOLE_C $0212 ;status 0=not reading, 1=reading
+define CONSOLE_BUFF $0213
 
 ;x = from
 ;y = to 
@@ -41,6 +42,8 @@ RTS
 ;y = max_len
 ;TODO check max_len
 console_read:
+LDA #$01
+STA CONSOLE_C
 LDA CONSOLE_S
 CMP #$00
 BEQ console_read ;wait for input
@@ -54,6 +57,8 @@ INX
 DEY
 JMP console_read_loop
 console_read_working_done:
+LDA #$00
+STA CONSOLE_C
 RTS
 
 define DISK_C $0220 ;control
