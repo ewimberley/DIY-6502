@@ -39,14 +39,20 @@ RTS
 
 ;x = to
 ;y = max_len
+;TODO check max_len
 console_read:
+LDA CONSOLE_S
+CMP #$00
+BEQ console_read ;wait for input
+LDY CONSOLE_LEN
+console_read_loop:
 CPY #$00 
-BEQ console_read
+BEQ console_read_working_done 
 LDA CONSOLE_BUFF
 STA ZP_BUFFER,X
 INX
 DEY
-JMP console_read
+JMP console_read_loop
 console_read_working_done:
 RTS
 

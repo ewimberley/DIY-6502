@@ -57,4 +57,4 @@ define ^Z #$5A
 .byte ^E ^R ^I ^C ^SP ^O ^S ^LF 
 
 .org $1110
-.byte ^DOLLAR ;console sentinal
+.byte ^DOLLAR ^SP ;console sentinal
