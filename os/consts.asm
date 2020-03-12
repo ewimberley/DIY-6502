@@ -54,7 +54,7 @@ define ^Z #$5A
 .org $1100
 
 ;OS boot message
-.byte ^E ^R ^I ^C ^SP ^O ^S 
+.byte ^E ^R ^I ^C ^SP ^O ^S ^LF 
 
 .org $1110
 .byte ^DOLLAR ;console sentinal
