@@ -16,5 +16,7 @@ JSR console_print
 LDX #$00
 LDY #$10
 JSR console_read
+LDX #$00
+LDY #$10
 JSR console_print
 JMP start ;OS loop
