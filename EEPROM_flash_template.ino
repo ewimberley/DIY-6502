@@ -10,7 +10,7 @@ void setup() {
   for(int i = 0; i < data_len; i++){
     EEPROM.update(i, data[i]);
   }
-  Serial.print("Done!\n");
+  Serial.print("Done\n");
 }
 
 void loop() {}

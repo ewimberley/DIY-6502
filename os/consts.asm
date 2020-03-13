@@ -58,3 +58,6 @@ define ^Z #$5A
 
 .org $1110
 .byte ^DOLLAR ^SP ;console sentinal
+
+.org $1115
+.byte ^LF
