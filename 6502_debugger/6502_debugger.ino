@@ -54,7 +54,8 @@ void clock_rising() {
     if (address == CONSOLE_BUFF_ADDR) {
       data = input[console_in_pointer];
       console_in_pointer++;
-      if (data == 0x00) {
+      if (console_in_pointer == MEM[CONSOLE_LEN_ADDR]) {
+        MEM[CONSOLE_LEN_ADDR] = console_in_pointer;
         MEM[CONSOLE_S_ADDR] = 0;
       }
     } else {
