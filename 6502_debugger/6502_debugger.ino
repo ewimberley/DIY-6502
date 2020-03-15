@@ -52,10 +52,10 @@ void clock_rising() {
   if (readPin) {
     setDataMode(OUTPUT);
     if (address == CONSOLE_BUFF_ADDR) {
-      data = input[console_in_pointer];
-      console_in_pointer++;
+      data = input[console_in_pointer++];
       if (console_in_pointer == MEM[CONSOLE_LEN_ADDR]) {
-        MEM[CONSOLE_LEN_ADDR] = console_in_pointer;
+        //debug_mem_range(0x7f, 0x8f);
+        MEM[CONSOLE_LEN_ADDR] = 0;
         MEM[CONSOLE_S_ADDR] = 0;
       }
     } else {
@@ -76,9 +76,7 @@ void clock_rising() {
       console_write = (char)data;
       console_write_status = 1;
     } else if (address == CONSOLE_C_ADDR) {
-      if (data == 1) {
-        get_console_input = 1;
-      }
+      get_console_input = data;
     } else if (address == DISK_BUFF_ADDR) {
       //EEPROM.write(i+0xC00, data);
     } else {
@@ -93,11 +91,20 @@ void clock_rising() {
     if (DEBUG) {
       Serial.print("Console: ");
     }
+    //debug_mem_range(0x7f, 0x8f);
     Serial.print(console_write);
     if (DEBUG) {
       Serial.println();
     }
   }
+}
+
+void debug_mem_range(int start, int stop){
+  Serial.print("Debug mem range: ");
+  for(int i = start; i < stop; i+=1){
+    Serial.print(MEM[i]);
+  }
+  Serial.println();
 }
 
 void init_mem() {
@@ -178,9 +185,9 @@ void loop() {
       c = Serial.read();
     }
     input[console_in_pointer] = 0;
-    console_in_pointer = 0;
     MEM[CONSOLE_LEN_ADDR] = console_in_pointer;
     MEM[CONSOLE_S_ADDR] = 1;
+    console_in_pointer = 0;
     get_console_input = 0;
   }
 }
