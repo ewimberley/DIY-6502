@@ -4,9 +4,10 @@ define ^ZP $00		;Zero page
 ;$001X				Terminal memory variables
 ;$002X				Common memory variables
 ;$0060-007E			Mini ZP Buffer
-define MINI_BUFF $60
+define ^MINI_BUFF $60
 ;$007F-00FF			ZP buffer
-define ZP_BUFF $7f
+define ZP_BUFFER $7F
+define ^ZP_BUFFER_LEN $80 
 define ^STACK $0100	;Stack
 ;$1000				OS Main
 define STATIC $1100	;Static
