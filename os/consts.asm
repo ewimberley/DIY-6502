@@ -1,5 +1,5 @@
 ;Memory map
-define ^ZP $00		;Zero page
+define ^ZP $00			;Zero page
 ;$000X				Device memory variables
 ;$001X				Terminal memory variables
 ;$002X				Common memory variables
@@ -8,15 +8,16 @@ define ^MINI_BUFF $60
 ;$007F-00FF			ZP buffer
 define ZP_BUFFER $7F
 define ^ZP_BUFFER_LEN $80 
-define ^STACK $0100	;Stack
+
+define ^STACK $0100		;Stack
 ;$1000				OS Main
-define STATIC $1100	;Static
+define STATIC $1100		;Static
 ;$1200				Devices Procedures
 ;$1300				Interrupts
 ;$1400				Common
 ;$1500				Terminal
-define WMEM $2000	;Working memory
-define SPECIAL $FFF0	;Interrupt address page
+define WMEM $2000		;Working memory
+define SPECIAL $FFF0		;Interrupt address page
 
 ;char definitions
 define ^SP #$20
@@ -70,3 +71,12 @@ define ^Z #$5A
 
 .org $1115
 .byte ^LF
+
+.org $1120
+.byte ^C ^A ^T ^SP
+
+.org $1130
+.byte ^S ^A ^V ^E ^SP
+
+.org $1140
+.byte ^E ^X ^E ^C ^SP
