@@ -6,14 +6,16 @@ define %CP_TO_ZP_OFFSET_LB $22
 
 define CP_TO_ZP_OFFSET_HB_LOC $1418
 define CP_TO_ZP_OFFSET_LB_LOC $1417
+define CP_TO_ZP_OFFSET_ZP_LOC $141F
 
 .org $1400
 
-;TODO dynamic start address in zp
 ;Copy static page to ZP buffer
+;a = zp start
 ;x = from
 ;y = to 
 cp_static_to_zp:
+STA CP_TO_ZP_OFFSET_ZP_LOC
 STX CP_TO_ZP_FROM_POINTER 
 LDX %CP_TO_ZP_OFFSET_HB
 STX CP_TO_ZP_OFFSET_HB_LOC
@@ -31,7 +33,7 @@ INX
 STX CP_TO_ZP_FROM_POINTER 
 ;store byte to zp
 LDX CP_TO_ZP_TO_POINTER
-STA ZP_BUFFER,X
+STA $FF,X
 INX
 STX CP_TO_ZP_TO_POINTER
 JMP cp_static_to_zp_loop 
@@ -43,14 +45,16 @@ define CP_FROM_ZP_TO_POINTER $25
 
 define CP_FROM_ZP_OFFSET_HB_LOC $144F
 define CP_FROM_ZP_OFFSET_LB_LOC $144E
+define CP_FROM_ZP_OFFSET_ZP_LOC $1447
 
 .org $1430
 
-;TODO dynamic start address in zp
 ;Copy ZP buffer to static page
+;a = zp start
 ;x = from
 ;y = to 
 cp_static_from_zp:
+STA CP_FROM_ZP_OFFSET_ZP_LOC
 STX CP_FROM_ZP_FROM_POINTER 
 LDX %CP_TO_ZP_OFFSET_HB 
 STX CP_FROM_ZP_OFFSET_HB_LOC
@@ -63,7 +67,7 @@ CPY CP_FROM_ZP_FROM_POINTER ;if from == to
 BEQ cp_static_from_zp_done 
 ;load byte from zp
 LDX CP_FROM_ZP_FROM_POINTER
-LDA ZP_BUFFER,X
+LDA $FF,X
 INX
 STX CP_FROM_ZP_FROM_POINTER
 ;store byte to static
