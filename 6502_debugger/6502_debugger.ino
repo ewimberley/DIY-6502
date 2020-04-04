@@ -3,6 +3,7 @@
 #define READ_WRITE 34
 #define CLOCK_OUT 9
 #define CLOCK_IN 8
+#define READY 12
 #define RESET 33
 #define IRQB 24
 #define NMI 7
@@ -20,7 +21,7 @@
 
 //#define FREQ 1000000
 #define DEBUG 0
-#define FREQ 5000
+#define FREQ 200
 
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
@@ -139,6 +140,8 @@ void setup() {
   pinMode(RESET, OUTPUT);
   pinMode(NMI, OUTPUT);
   pinMode(IRQB, OUTPUT);
+  pinMode(READY, OUTPUT);
+  digitalWrite(READY, HIGH);
   digitalWrite(NMI, HIGH);
   digitalWrite(IRQB, HIGH);
   attachInterrupt(digitalPinToInterrupt(CLOCK_IN), clock_rising, RISING);

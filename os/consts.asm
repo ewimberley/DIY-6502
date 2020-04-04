@@ -73,10 +73,16 @@ define ^Z #$5A
 .byte ^LF
 
 .org $1120
-.byte ^C ^A ^T ^SP
+.byte ^N ^O ^N ^E ^SP
 
 .org $1130
-.byte ^S ^A ^V ^E ^SP
+.byte ^C ^A ^T ^SP
 
 .org $1140
+.byte ^S ^A ^V ^E ^SP
+
+.org $1150
+.byte ^R ^M ^SP
+
+.org $1160
 .byte ^E ^X ^E ^C ^SP

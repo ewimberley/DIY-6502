@@ -19,13 +19,11 @@ JSR cp_static_to_zp
 LDX #$00
 LDY #$02 
 JSR console_print
-;read 10 bytes max
+;read 30 bytes max
 LDX #$00
-LDY #$10
+LDY #$30
 JSR console_read
-LDX #$00
-LDY #$10
-JSR console_print
+JSR parse_command 
 ;print nl
 LDX #$15
 LDY #$16 
