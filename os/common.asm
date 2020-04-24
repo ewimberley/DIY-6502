@@ -4,9 +4,9 @@ define CP_TO_ZP_TO_POINTER $21
 define %CP_TO_ZP_OFFSET_HB $23
 define %CP_TO_ZP_OFFSET_LB $22
 
-define CP_TO_ZP_OFFSET_HB_LOC $1418
-define CP_TO_ZP_OFFSET_LB_LOC $1417
-define CP_TO_ZP_OFFSET_ZP_LOC $141F
+define CP_TO_ZP_OFFSET_HB_LOC $141A
+define CP_TO_ZP_OFFSET_LB_LOC $141B
+define CP_TO_ZP_OFFSET_ZP_LOC $1422
 
 .org $1400
 
@@ -17,6 +17,7 @@ define CP_TO_ZP_OFFSET_ZP_LOC $141F
 cp_static_to_zp:
 STA CP_TO_ZP_OFFSET_ZP_LOC
 STX CP_TO_ZP_FROM_POINTER 
+;polymorphic code: change address of static page within this function
 LDX %CP_TO_ZP_OFFSET_HB
 STX CP_TO_ZP_OFFSET_HB_LOC
 LDX %CP_TO_ZP_OFFSET_LB
@@ -54,6 +55,7 @@ define CP_FROM_ZP_OFFSET_ZP_LOC $1447
 ;x = from
 ;y = to 
 cp_static_from_zp:
+;polymorphic code: change address of static page within this function
 STA CP_FROM_ZP_OFFSET_ZP_LOC
 STX CP_FROM_ZP_FROM_POINTER 
 LDX %CP_TO_ZP_OFFSET_HB 
@@ -120,3 +122,21 @@ compare_equal:
 LDX #$01;
 RTS ;x returns true 
 
+print_nl:
+LDA ^LF
+LDX #$00
+STA ZP_BUFFER,X
+LDX #$00
+LDY #$01
+JSR console_print
+RTS
+
+;x = error number
+print_error:
+LDX #$20
+LDY #$25 
+JSR cp_static_to_zp
+LDX #$00
+LDY #$05
+JSR console_print
+RTS

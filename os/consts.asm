@@ -66,14 +66,8 @@ define ^Z #$5A
 ;OS boot message
 .byte ^E ^R ^I ^C ^SP ^O ^S ^LF 
 
-.org $1110
-.byte ^DOLLAR ^SP ;console sentinal
-
-.org $1115
-.byte ^LF
-
 .org $1120
-.byte ^N ^O ^N ^E ^SP
+.byte ^E ^R ^R ^O ^R ^SP
 
 .org $1130
 .byte ^C ^A ^T ^SP
