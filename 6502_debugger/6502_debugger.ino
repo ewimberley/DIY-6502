@@ -20,7 +20,8 @@
 #define DISK_BUFF_ADDR 0x0222
 
 //#define FREQ 1000000
-#define DEBUG 0
+#define DEBUG 1
+#define STEP 1
 #define FREQ 200
 
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
@@ -28,13 +29,15 @@ const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
 //const char DATA[] = {32, 31, 30, 29, 28, 27, 26, 25};
 char MEM[65536];
 
+int step = STEP;
+
 int get_console_input = 0;
 #define INPUT_LEN 0x7F
 char input[INPUT_LEN];
 int console_in_pointer = 0;
 
 void clock_rising() {
-  char output[15];
+  char output[19];
   char console_write;
   int console_write_status = 0;
   unsigned int address = 0;
@@ -85,7 +88,10 @@ void clock_rising() {
     }
   }
   if (DEBUG) {
-    sprintf(output, "   %04x  %c  %02x", address, readPin ? 'R' : 'W', data);
+    char cmd_buff[4];
+    String cmd = disassemble(data);
+    cmd.toCharArray(cmd_buff, 4);
+    sprintf(output, "   %04x  %c  %02x %s", address, readPin ? 'R' : 'W', data, cmd_buff);
     Serial.println(output);
   }
   if (console_write_status) {
@@ -158,7 +164,9 @@ void setup() {
   sprintf(output, "Boot Address: %04x\tClock %dHz", BOOT_ADDR, FREQ);
   Serial.println(output);
   delay(200);
-  tone(CLOCK_OUT, FREQ);
+  if(!STEP) {
+    tone(CLOCK_OUT, FREQ);
+  }
 }
 
 void setDataMode(int mode) {
@@ -178,6 +186,19 @@ void setData(int data) {
 }
 
 void loop() {
+  if(step){
+    String c = Serial.readString();
+    if(c[0] == 'S') { //step
+      digitalWrite(CLOCK_OUT, HIGH);
+      delay(10);
+      digitalWrite(CLOCK_OUT, LOW);
+    } else if(c[0] == 'C'){
+      step = 0;
+      tone(CLOCK_OUT, FREQ);
+    } else {
+      //do nothing
+    }
+  }
   if(get_console_input){
     console_in_pointer = 0;
     char c = Serial.read();
@@ -192,5 +213,181 @@ void loop() {
     MEM[CONSOLE_S_ADDR] = 1;
     console_in_pointer = 0;
     get_console_input = 0;
+  }
+}
+
+String disassemble(byte x){
+  switch(x){
+    case 0x61:
+    case 0x65:
+    case 0x69:
+    case 0x71:
+      return "ADC";
+    case 0xE5:
+    case 0xE9:
+    case 0xED:
+    case 0xF1:
+      return "SBC";
+    case 0x21:
+    case 0x25:
+    case 0x29:
+    case 0x2D:
+    case 0x31:
+      return "AND";
+    case 0x01:
+    case 0x05:
+    case 0x09:
+    case 0x0D:
+    case 0x11:
+      return "ORA";
+    case 0x45:
+    case 0x49:
+    case 0x4D:
+    case 0x55:
+    case 0x59:
+    case 0x5D:
+    case 0x51:
+      return "EOR";
+    case 0x26:
+    case 0x2A:
+    case 0x2E:
+      return "ROL";
+    case 0x66:
+    case 0x6A:
+    case 0x6E:
+      return "ROR";
+    case 0x0A:
+      return "ASL";
+    case 0x4A:
+    case 0x46:
+    case 0x4E:
+      return "LSR";
+    case 0xE6:
+    case 0xEE:
+    case 0xF6:
+    case 0xFE:
+      return "INC";
+    case 0xC6:
+    case 0xCE:
+    case 0xD6:
+    case 0xDE:
+      return "DEC";
+    case 0x24:
+    case 0x2C:
+      return "BIT";
+    case 0x10:
+      return "BPL";
+    case 0x30:
+      return "BMI";
+    case 0x50:
+      return "BVC";
+    case 0x70:
+      return "BCC";
+    case 0x90:
+      return "BCS";
+    case 0xD0:
+      return "BNE";
+    case 0xF0:
+      return "BEQ";
+    case 0xC5:
+    case 0xC9:
+    case 0xCD:
+      return "CMP";
+    case 0xE0:
+    case 0xE4:
+    case 0xEC:
+      return "CPX";
+    case 0xC0:
+    case 0xC4:
+    case 0xCC:
+      return "CPY";
+    case 0xA1:
+    case 0xA5:
+    case 0xA9:
+    case 0xAD:
+    case 0xB1:
+    case 0xB5:
+    case 0xB9:
+    case 0xBD:
+      return "LDA";
+    case 0xA2:
+    case 0xA6:
+    case 0xAE:
+    case 0xB6:
+    case 0xBE:
+      return "LDX";
+    case 0xA0:
+    case 0xA4:
+    case 0xAC:
+    case 0xB4:
+    case 0xBC:
+      return "LDY";
+    case 0x88:
+      return "DEY";
+    case 0x8A:
+      return "TXA";
+    case 0x98:
+      return "TYA";
+    case 0xA8:
+      return "TAY";
+    case 0xAA:
+      return "TAX";
+    case 0xC8:
+      return "INY";
+    case 0xCA:
+      return "DEX";
+    case 0xE8:
+      return "INX";
+    case 0x4C:
+    case 0x6C:
+      return "JMP";
+    case 0x20:
+      return "JSR";
+    case 0x40:
+      return "RTI";
+    case 0x60:
+      return "RTS";
+    case 0x48:
+      return "PHA";
+    case 0x08:
+      return "PHP";
+    case 0x28:
+      return "PLP";
+    case 0x68:
+      return "PLA";
+    case 0x18:
+      return "CLC";
+    case 0x38:
+      return "SEC";
+    case 0x58:
+      return "CLI";
+    case 0x78:
+      return "SEI";
+    case 0xB8:
+      return "CLV";
+    case 0xD8:
+      return "CLD";
+    case 0xF8:
+      return "SED";
+    case 0x85:
+    case 0x8D:
+    case 0x95:
+    case 0x99:
+    case 0x9D:
+      return "STA";
+    case 0x86:
+    case 0x8E:
+    case 0x96:
+      return "STX";
+    case 0x84:
+    case 0x8C:
+    case 0x94:
+      return "STY";
+    case 0x00:
+      return "BRK";
+    case 0xEA:
+      return "NOP";
+    default:
+      return "XXX";
   }
 }
