@@ -185,16 +185,54 @@ void setData(int data) {
   }
 }
 
+void stepClocks(int n){
+  for(int i = 0; i < n; i++){
+    digitalWrite(CLOCK_OUT, HIGH);
+    delay(10);
+    digitalWrite(CLOCK_OUT, LOW);
+  } 
+}
+
+void printZP(int hex){
+  Serial.print("0\t");
+  for(int i = 0; i < 0x100; i++){
+    if(hex == 1){
+      Serial.print((int)MEM[i], HEX);
+    } else {
+      Serial.print(MEM[i]);
+    }
+    Serial.print(" ");
+    if(((i+1)%4) == 0){
+      Serial.print("\t");
+    }
+    if(((i+1)%16) == 0){
+      Serial.print("\n");
+      Serial.print(i+1, HEX);
+      Serial.print("\t");
+    }
+  }
+}
+
 void loop() {
   if(step){
     String c = Serial.readString();
-    if(c[0] == 'S') { //step
-      digitalWrite(CLOCK_OUT, HIGH);
-      delay(10);
-      digitalWrite(CLOCK_OUT, LOW);
+    if(c.equals("S\n")) { //step
+      stepClocks(1);
+    } else if(c.equals("S5\n")) { //step
+      stepClocks(5);
+    } else if(c.equals("S10\n")) { //step
+      stepClocks(10);
+    } else if(c.equals("S20\n")) { //step
+      stepClocks(20);
+    } else if(c.equals("S50\n")) { //step
+      stepClocks(50);
     } else if(c[0] == 'C'){
       step = 0;
       tone(CLOCK_OUT, FREQ);
+    } else if(c.equals("ZH\n")){
+      printZP(1);
+    } else if(c.equals("Z\n")){
+      printZP(1);
     } else {
       //do nothing
     }
