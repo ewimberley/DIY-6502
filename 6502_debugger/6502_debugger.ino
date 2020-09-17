@@ -20,16 +20,17 @@
 #define DISK_BUFF_ADDR 0x0222
 
 //#define FREQ 1000000
-#define DEBUG 1
-#define STEP 1
-#define FREQ 200
+//#define DEBUG 1
+//#define STEP 1
+#define FREQ 500
 
 const char ADDR[] = {35, 36, 37, 38, 39, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23};
 const char DATA[] = {25, 26, 27, 28, 29, 30, 31, 32};
 //const char DATA[] = {32, 31, 30, 29, 28, 27, 26, 25};
 char MEM[65536];
 
-int step = STEP;
+int DEBUG = 0;
+int step = 0;
 
 int get_console_input = 0;
 #define INPUT_LEN 0x7F
@@ -89,8 +90,12 @@ void clock_rising() {
   }
   if (DEBUG) {
     char cmd_buff[4];
-    String cmd = disassemble(data);
-    cmd.toCharArray(cmd_buff, 4);
+    if(readPin){
+      String cmd = disassemble(data);
+      cmd.toCharArray(cmd_buff, 4);
+    } else {
+      cmd_buff[0] = '\0';
+    }
     sprintf(output, "   %04x  %c  %02x %s", address, readPin ? 'R' : 'W', data, cmd_buff);
     Serial.println(output);
   }
@@ -156,7 +161,12 @@ void setup() {
   while (!Serial.available()) {
     delay(200);
   }
-  Serial.read();
+  //Serial.read();
+  String c = Serial.readString();
+  if(c[0] == 'D'){
+    step = 1;
+    DEBUG = 1;
+  }
   delay(200);
   Serial.println("DIWHY 6502");
   Serial.println("Eric Wimberley");
@@ -164,7 +174,7 @@ void setup() {
   sprintf(output, "Boot Address: %04x\tClock %dHz", BOOT_ADDR, FREQ);
   Serial.println(output);
   delay(200);
-  if(!STEP) {
+  if(!step) {
     tone(CLOCK_OUT, FREQ);
   }
 }
@@ -193,9 +203,9 @@ void stepClocks(int n){
   } 
 }
 
-void printZP(int hex){
+void printPage(int page, int hex){
   Serial.print("0\t");
-  for(int i = 0; i < 0x100; i++){
+  for(int i = page; i < (page + 0x100); i++){
     if(hex == 1){
       Serial.print((int)MEM[i], HEX);
     } else {
@@ -230,9 +240,9 @@ void loop() {
       step = 0;
       tone(CLOCK_OUT, FREQ);
     } else if(c.equals("ZH\n")){
-      printZP(1);
+      printPage(0, 1);
     } else if(c.equals("Z\n")){
-      printZP(1);
+      printPage(0, 1);
     } else {
       //do nothing
     }
@@ -426,6 +436,6 @@ String disassemble(byte x){
     case 0xEA:
       return "NOP";
     default:
-      return "XXX";
+      return "   ";
   }
 }

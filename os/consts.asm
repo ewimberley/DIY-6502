@@ -80,3 +80,7 @@ define ^Z #$5A
 
 .org $1160
 .byte ^E ^X ^E ^C ^SP
+
+
+.org $1170
+.byte ^H ^E ^L ^L ^O ^SP ^W ^O ^R ^L ^D
