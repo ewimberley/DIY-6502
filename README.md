@@ -1,6 +1,6 @@
-# 6502-Harness
+# DIY-6502
  
-A breadboard 6502 that utilizes a Teensy 3.5, along with firmware code and an assembler.
+A custom 6502 that utilizes a Teensy 3.5, along with firmware code and an assembler.
 
 <img src="6502circuit.png"  width="60%">
 
@@ -81,3 +81,8 @@ E0	0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 0
 F0	0 0 0 0 	0 0 0 0 	0 0 0 0 	0 0 0 0 	
 100
 ```
+## References
+
+Ben Eater. https://www.youtube.com/user/eaterbc
+
+W65C02S 8–bit Microprocessor. The Western Design Center, Inc. https://www.westerndesigncenter.com/wdc/documentation/w65c02s.pdf
